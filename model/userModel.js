@@ -1,11 +1,13 @@
 const mongoose = require("mongoose");
-const schema = mongoose.Schema
+const Schema = mongoose.Schema
 
-const userSchema = new schema({
+const userSchema = new Schema({
 
     userEmail : {
         type : String,
-        required : [true, "Email must be provided"]
+        required : [true, "Email must be provided"],
+        unique : true,
+        lowercase : true
     },
 
     userName : {
@@ -21,7 +23,8 @@ const userSchema = new schema({
 
     userPassword : {
         type : String,
-        required : [true, "Password must be entered"]
+        required : [true, "Password must be entered"],
+        //select : false
     },
 
     role : {
@@ -29,16 +32,23 @@ const userSchema = new schema({
         type : String,
         enum : ["customer", "admin"],
         default : "customer"
+       
     },
     
     otp : {
-        type : Number
+        type : Number,
+        select : false
     },
 
     isOtpVerified : { 
         type :  Boolean,
-        default : false
-    }
+        default : false,
+        select : false
+    },
+    cart : [{
+        type : Schema.Types.ObjectId, 
+        ref : "Product"
+    }]
 
 })
 
