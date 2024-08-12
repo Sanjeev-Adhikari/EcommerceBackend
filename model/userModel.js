@@ -46,8 +46,17 @@ const userSchema = new Schema({
         select : false
     },
     cart : [{
+
+        quantity: { 
+        type: Number,
+        required: true,
+         min: 1 },
+         
+        product : {
         type : Schema.Types.ObjectId, 
         ref : "Product"
+        }
+       
     }]
 
 })

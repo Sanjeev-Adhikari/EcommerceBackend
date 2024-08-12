@@ -1,24 +1,34 @@
 const Order = require("../../../model/orderModel")
+const User = require("../../../model/userModel")
 
 exports.createOrder = async(req,res)=>{
     const userId = req.user.id
-    const {shippingAddress,items,totalAmount,paymentDetails} = req.body
+    const {shippingAddress,items,totalAmount,paymentDetails, phoneNumber} = req.body
     //check if all the fields are fields or not
-    if(!shippingAddress || !items.length > 0 || !totalAmount || !paymentDetails) {
+    if(!shippingAddress || !items.length > 0 || !totalAmount || !paymentDetails || !phoneNumber) {
         return res.status(400).json({
             message : "Please fill the required fields"
         })
     }
     //create orders==>>Insert into order table
-    await Order.create({
+    const createdOrder = await Order.create({
         user : userId,
         shippingAddress,
         totalAmount,
         items,
-        paymentDetails
+        paymentDetails,
+        phoneNumber
     })
+
+    const user = await User.findById(userId)
+   if(user){
+    user.cart = []
+    await user.save()
+   }
+
     res.status(200).json({
-        message : "order created successfully"
+        message : "order created successfully",
+        data : createdOrder
     })
 }
 

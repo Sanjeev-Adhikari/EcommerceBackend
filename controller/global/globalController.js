@@ -1,4 +1,5 @@
 const Product = require("../../model/productModel")
+const Review = require("../../model/reviewModel")
 
 //logic for getting/fetching the products goes here
 exports.getProducts = async (req,res)=>{
@@ -41,7 +42,7 @@ exports.getProduct = async (req,res)=>{
         })
     }
     const product = await Product.find({_id : id})
-    const productRevies = await Review.find({productId : id }).populate("userId").populate("productId")
+    const productReviews = await Review.find({productId : id }).populate("userId").populate("productId")
     if(product.length == 0){
         res.status(400).json({
             message : "No product with this id",
@@ -55,7 +56,7 @@ exports.getProduct = async (req,res)=>{
             message : "Product found successfully",
             data : {
                 product,
-                productRevies
+                productReviews
             }
         })
     }
