@@ -73,7 +73,7 @@ const server = app.listen(PORT, ()=>{
     console.log(`Server is Up and Running at Port : ${PORT}`)
 }) 
 const io = new Server(server,{
-    cors : "http://localhost:3001/"
+    cors : "https://admin-one-rouge.vercel.app/"
 })
     
 let onlineUsers = []
