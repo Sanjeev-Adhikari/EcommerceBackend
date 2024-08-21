@@ -96,7 +96,7 @@ res.status(200).json({
 }
 
 exports.deleteOrder = async(req,res)=>{
-    const {userId} = req.user.id
+    const userId = req.user.id
     const {id} = req.params
 
     //check if the order exists or not
@@ -107,20 +107,27 @@ exports.deleteOrder = async(req,res)=>{
         })
 
     }
-    if(order.user !== userId){
+    if(order.user != userId){
         return res.status(400).json({
             message : "You don't have permission to delete this order"
         })
     }
+
+    if(order.orderStatus !== "pending"){
+        return res.status(400).json({
+            message : "You can not delete this order now as we have already proceeded"
+        })
+    }
+
     await Order.findByIdAndDelete(id)
-    res.json(200).json({
+    res.status(200).json({
         message : "Order deleted successfully",
         data : null
     })
 }
 
 exports.cancelOrder = async(req,res)=>{
-    const {id} = req.body.id
+    const {id} = req.body
     const userId = req.user.id
     
     //check if the order exists or not
@@ -131,21 +138,29 @@ exports.cancelOrder = async(req,res)=>{
         })
     }
     //check if the user trying to change order status is the user who ordered the thing
-    if(order.user !== userId){
+    if(order.user != userId){
         return res.status(400).json({
             message : "You don't have permission to do this"
         })
     }
     //check if the order status is pending or not because user cannot update an order which is not pending
     if(order.orderStatus !== "pending"){
-        return res.status(404).json({
+        return res.status(400).json({
             message : "You can not cancel this order as it is not pending"
         })
     }
+    
     //cancel the order
     const updatedOrder = await Order.findByIdAndUpdate(id,{
-        orderstatus : "cancelled"
+        orderStatus : 'cancelled'
     },{new:true})
+
+    if (!updatedOrder) {
+        return res.status(404).json({
+            message: "Order not found"
+        });
+    }
+    
     res.status(200).json({
         message : "order cancelled successfully",
         data : updatedOrder

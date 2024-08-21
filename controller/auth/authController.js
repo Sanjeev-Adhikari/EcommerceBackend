@@ -42,15 +42,15 @@ exports.registerUser  = async (req,res)=>{
  exports.loginUser = async (req,res)=>{
     const {email, password} = req.body
     if(!email || !password){
-        return res.status(404).json({
+        return res.status(401).json({
             message: "Please provide email and password to login"
         })
     }
     
-    //chech if the email exists or not
+    //check if the email exists or not
     const userFound = await User.find({userEmail : email})
     if(userFound.length == 0){
-        return res.status(404).json({
+        return res.status(401).json({
             message : "User with that email is not registered"
         })
     }
@@ -107,7 +107,8 @@ exports.forgotPassword = async (req,res)=>{
         message: `Your OTP is ${otp}`
     })
     res.status(201).json({
-        message : "OTP sent successfully"
+        message : "OTP sent successfully",
+        data : email
     })
 }
 
@@ -122,14 +123,14 @@ exports.verifyOtp = async (req,res)=>{
 
     //check if the otp obtained from that email is correct or not
 
-    const userExist = await User.find({userEmail : email})
+    const userExist = await User.find({userEmail : email}).select("+otp")
         if(userExist.length == 0){
             return res.status(404).json({
                 message : "Emailis not registered"
             })
         }
-
-        if(userExist[0].otp !== otp){
+        console.log(userExist[0].otp,otp)
+        if(userExist[0].otp !== +otp){ //to change string into number we can add a plus ahead like i did or we can also have done otp*1
             return res.status(404).json({
                 message : "Invalid OTP"
             })
@@ -170,7 +171,7 @@ exports.resetPassword = async (req,res)=>{
     }
 
     //yo email ko user chakinai verify garne 
-    const userExist = await User.find({userEmail : email})
+    const userExist = await User.find({userEmail : email}).select("+isOtpVerified")
     if(userExist.length == 0){
         return res.status(404).json({
             message : "User email not registered"
@@ -188,7 +189,7 @@ exports.resetPassword = async (req,res)=>{
     userExist[0].isOtpVerified = false
     await userExist[0].save()
 
-    res.status(201).json({
+    res.status(200).json({
         message : "Password Changed successfully"
     })
 

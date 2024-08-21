@@ -36,7 +36,8 @@ if(!user){
 }else { 
     await User.findByIdAndDelete(userId)
     res.status(200).json({
-        message : "User Deleted successfully"
+        message : "User Deleted successfully",
+        data : user
     })
 }
 }

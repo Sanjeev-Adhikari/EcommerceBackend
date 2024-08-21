@@ -1,4 +1,5 @@
 const Product = require("../../../model/productModel")
+const Order = require("../../../model/orderModel")
 
 //requiring file system package
 const fs = require("fs")
@@ -24,7 +25,7 @@ if(!productName || !productDescription || !productPrice || !productStatus || !pr
 }
 
 //insert data into the product collection table
-await Product.create({
+const createdProduct = await Product.create({
      productName : productName,
      productDescription : productDescription,
      productPrice : productPrice,
@@ -33,7 +34,8 @@ await Product.create({
      productImage :  process.env.BACKEND_URL + filePath
 })
 res.status(201).json({
-    message : "Product Created Successfully"
+    message : "Product Created Successfully",
+    data : createdProduct
 })
     
 }
@@ -52,7 +54,8 @@ exports.deleteProduct = async(req,res)=>{
  const oldData = await Product.findById(id)
     if(!oldData){
         return res.status(404).json({
-            message : "No data found with that id"
+            message : "No data found with that id",
+        
         })
     }
     
@@ -74,6 +77,7 @@ exports.deleteProduct = async(req,res)=>{
   await Product.findByIdAndDelete(id)
     res.status(201).json({
         message : "Product deleted successfully"
+      
     })
 }
 
@@ -135,5 +139,80 @@ exports.editProduct = async(req,res)=>{
     res.status(200).json({
         message : "Product Updated Successfully",
         data : datas
+    })
+}
+
+exports.updateProductStatus = async (req,res)=>{
+    const {id} = req.params
+    const {productStatus} = req.body
+
+    if(!productStatus || !['available','unavailable'].includes(productStatus.toLowerCase())){
+        return res.status(400).json({
+            message : "productStatus is invalid or should be provided"
+        })
+    }
+
+    const product = await Product.findById(id)
+    if(!product){
+        return res.status(404).json({
+            message : "No poduct found with that id "
+        }) 
+    }
+
+    const updatedProductStatus = await Product.findByIdAndUpdate(id,{
+        productStatus
+    },{new : true})
+
+    res.status(200).json({
+        message : "Product Status updated sucessfully",
+        data : updatedProductStatus
+    })
+
+
+
+}
+
+exports.updateProductStockAndPrice = async(req,res)=>{
+    const {id} = req.params
+    const {productStockQty,productPrice} = req.body
+
+    if(!productStockQty && !productPrice){
+        return res.status(400).json({
+            message : "Please provide productStockQty or productPrice"
+        })
+    }
+
+    const product = await Product.findById(id)
+    if(!product){
+        return res.status(404).json({
+            message : "Product with that id not found"
+        })
+    }
+
+    const updatedStockAndPrice = await Product.findByIdAndUpdate(id,{
+        productStockQty : productStockQty? productStockQty : product.productStockQty,
+        productPrice : productPrice? productPrice : product.productPrice
+    })
+
+    res.status(200).json({
+        message : "Updated Successully",
+        data : updatedStockAndPrice
+    })
+}
+
+exports.getOrdersOfAProduct = async(req,res)=>{
+    const {id: productId} = req.params
+
+    const product = await Product.findById(productId)
+    if(!product){
+        return res.status(404).json({
+            message : "No product found with that id"
+        })
+    }
+    const productOrders = await Order.find({'items.product' : productId}).populate('user')
+
+    res.status(200).json({
+        message : "Product orders fetched successfully",
+        data : productOrders
     })
 }

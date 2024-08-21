@@ -1,5 +1,7 @@
 const express = require("express");
 const { connectDatabase } = require("./database/database");
+const jwt = require("jsonwebtoken")
+const {promisify} = require("util")
 
 const app = express();
 
@@ -16,8 +18,12 @@ const cartRoute = require("./routes/user/cartRoute")
 const orderRoute = require("./routes/user/orderRoute")
 const adminOrderRoute = require("./routes/admin/adminOrderRoute")
 const paymentRoute = require("./routes/user/paymentRoute");
-const User = require("./model/userModel");
+const dataServiceRoute = require("./routes/admin/dataServiceRoute")
 //routes end
+
+
+const User = require("./model/userModel");
+
 
 app.use(cors({
     origin : "*"
@@ -54,7 +60,9 @@ app.use("/api/profile",profileRoute)
 app.use("/api/cart", cartRoute)
 app.use("/api/orders",orderRoute)
 app.use("/api/admin", adminOrderRoute)
+app.use("/api/admin", dataServiceRoute)
 app.use("/api/payment", paymentRoute)
+
 
 
 //API ENDS
@@ -62,32 +70,36 @@ app.use("/api/payment", paymentRoute)
 //Make server to listen run on a port so that it can run
 const PORT = process.env.PORT
 const server = app.listen(PORT, ()=>{
-    console.log("Server is Up and Running at 3000")
+    console.log(`Server is Up and Running at Port : ${PORT}`)
 }) 
-const io = new Server(server)
-
-io.on("connection", (socket)=>{
-    socket.on("register", async (data)=>{
-         const {username,phoneNumber,email,password} = data
-        // await User.create ({
-        //     userEmail : email,
-        //     userName : username,
-        //     userPhoneNumber : phoneNumber,
-        //     userPassword : password
-        // })
-      //io.emit("response"), {message : "User registered"} 
-      io.to(socket.id).emit("response", {message : "User registered successfully"}) 
-    })
-
-    console.log("A user connected")
-
-    socket.on('disconnect',()=>{
-        console.log("A user disconnected")
-    })
+const io = new Server(server,{
+    cors : "http://localhost:3001/"
 })
-//io lai ettikai export garna mildaina modules.exports = io garera so hamle euta function banako ani tesbhitra chai io lai return garera ani tyo function lai export gareko aba jata yo function invoke garinxa tya io import hunxa 
-function getSocketIo(){
-    return io
+    
+let onlineUsers = []
+const addToOnlineUsers = (socketId, userId, role)=>{
+   onlineUsers =  onlineUsers.filter((user)=>user.userId !== userId)
+    onlineUsers.push({socketId,userId,role})
+    console.log(onlineUsers)
 }
+  
+io.on("connection", async(socket)=>{
+        //take the token and validate it
+        const {token} = socket.handshake.auth
+        if(token){
+            //validate token
+            const decoded = await promisify(jwt.verify)(token,process.env.SECRET_KEY)
+            const doesUserExists = await User.findOne({_id : decoded.id})
+            if(doesUserExists){
+                addToOnlineUsers(socket.id,doesUserExists.id, doesUserExists.role)
+            }
 
-module.exports.getSocketIo = getSocketIo
+        }
+
+        socket.on('updateOrderStatus',({status,orderId,userId})=>{
+          const findUser =  onlineUsers.find((user)=> user.userId == userId)
+         io.to(findUser.socketId).emit("statusUpdated",{status,orderId})
+        })
+    })
+
+

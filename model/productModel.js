@@ -20,7 +20,8 @@ const productSchema = new Schema({
 
     productStatus : {
         type : String,
-        required : [true, "Product status must be provided"]
+        enum : ["available", "unavailable"]
+       
     },
 
     productStockQty : {

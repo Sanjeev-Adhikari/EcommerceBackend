@@ -13,13 +13,13 @@ router.route("/register").post( catchAsync(registerUser))
 router.route("/login").post(catchAsync(loginUser))
 
 //route for forgot password API
-router.route("/forgotPassword").post(catchAsync(forgotPassword))
+router.route("/forgotpassword").post(catchAsync(forgotPassword))
 
 //route for verify otp API
-router.route("/verifyOtp").post(catchAsync(verifyOtp))
+router.route("/verifyotp").post(catchAsync(verifyOtp))
 
 //route for resetPassword API
-router.route("/resetPassword").post(catchAsync(resetPassword))
+router.route("/resetpassword").post(catchAsync(resetPassword))
 
 //Routes end
 

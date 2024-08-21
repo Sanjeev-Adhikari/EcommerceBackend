@@ -44,7 +44,7 @@ const orderSchema = new Schema({
         },
         status : {
             type : String,
-            enum : ["Paid" , "unpaid", "Failed" , "pending"],
+            enum : ["paid" , "unpaid", "failed" , "pending"],
             default : "pending"   
         }
     }

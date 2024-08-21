@@ -60,7 +60,7 @@ exports.verifyPidx = async (req,res)=>{
         let order = await Order.find({'paymentDetails.pidx' : pidx})
         
         order[0].paymentDetails.method = 'khalti'
-        order[0].paymentDetails.status = "Paid"
+        order[0].paymentDetails.status = "paid"
         await order[0].save()   
 
         //empty cart item after checkout

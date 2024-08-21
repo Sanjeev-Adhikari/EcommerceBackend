@@ -6,12 +6,12 @@ const User = require("../../../model/userModel")
 const bcrypt = require("bcryptjs")
 //get my profile
 exports.getMyprofile = async(req,res)=>{
-    const userId = req.user.userId
-    const myprofile = await User.findById(userId)
+    const userId = req.user.id
+    const myProfile = await User.findById(userId)
 
     //send response
     res.status(200).json({
-        data : myprofile,
+        data : myProfile,
         message : "Profile fetched successfully"
     })
 }
@@ -20,7 +20,7 @@ exports.getMyprofile = async(req,res)=>{
 //update my profile
 exports.updateMyProfile = async (req,res)=>{
     const {userName, userEmail, userPhoneNumber} = req.body
-    const userId = req.user.userId
+    const userId = req.user.id
     //update profile
     const updatedData = await User.findByIdAndUpdate(userId,{userName, userEmail, userPhoneNumber},{
         runValidators :true //update hunu aghi schema ma jati ota validators cha sab run garxa
